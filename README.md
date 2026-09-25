@@ -16,3 +16,37 @@ Try to deploy the application in the live environment!
 If possible, set up Caddy as your web server.
 
 Fork this repository and continue your work here.
+
+## Implementation
+
+This repository implements the first option using Express, PostgreSQL, Docker
+Compose, and Caddy.
+
+Start the stack:
+
+```sh
+docker compose up -d --build
+```
+
+Caddy exposes the application on `http://localhost`. The Express container is
+reachable only on the `backend` network; PostgreSQL is reachable only on the
+internal `database` network. The Express service joins both networks and uses
+the database container name, `database`, as `DB_HOST`.
+
+Try the persistent API:
+
+```sh
+curl http://localhost/health
+curl -X POST http://localhost/notes \\
+  -H 'content-type: application/json' \\
+  -d '{"text":"My first persistent note"}'
+curl http://localhost/
+```
+
+The `postgres_data` named volume retains notes across `docker compose down` and
+subsequent `docker compose up -d` runs. Use the following only when you also
+want to delete the stored data:
+
+```sh
+docker compose down -v
+```
